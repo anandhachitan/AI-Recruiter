@@ -54,11 +54,11 @@ export const InterviewType = [
     icon: BriefcaseBusinessIcon,
   },
   {
-    title: "Technical",
+    title: "Problem Solving",
     icon: Puzzle,
   },
   {
-    title: "Technical",
+    title: "Leadership",
     icon: Component,
   },
 ];
