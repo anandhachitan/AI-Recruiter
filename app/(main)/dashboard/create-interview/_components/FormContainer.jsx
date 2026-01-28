@@ -13,7 +13,23 @@ import { InterviewType } from "@/services/Constants";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
-function FormContainer() {
+function FormContainer({ onHandleInputChange }) {
+  const [interviewType, setInterviewType] = useState([]);
+
+  useEffect(() => {
+    if (interviewType) {
+      onHandleInputChange("type", interviewType);
+    }
+  }, [interviewType]);
+
+  const AddInterviewType = (type) => {
+    if (!interviewType.includes(type)) {
+      setInterviewType((prev) => [...prev, type]);
+    } else {
+      setInterviewType((prev) => prev.filter((item) => item !== type));
+    }
+  };
+
   return (
     <div className="p-5 bg-white rounded-xl">
       <div>
@@ -59,7 +75,7 @@ function FormContainer() {
           ))}
         </div>
       </div>
-      <div className="mt-7 flex justify-end">
+      <div className="mt-7 flex justify-end" onClick={() => GoToNext()}>
         <Button>
           Genrate Question <ArrowRight />
         </Button>
