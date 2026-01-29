@@ -19,11 +19,14 @@ function Provider({ children }) {
 
       console.log(Users);
       if (Users?.length == 0) {
-        const { data, error } = await supabase.from("Users").insert({
-          email: user?.email,
-          name: user?.user_metadata?.name,
-          picture: user?.user_metadata?.picture,
-        });
+        const { data, error } = await supabase
+          .from("Users")
+          .insert({
+            email: user?.email,
+            name: user?.user_metadata?.name,
+            picture: user?.user_metadata?.picture,
+          })
+          .select();
         console.log(data);
         setUser(data[0]);
         return;
