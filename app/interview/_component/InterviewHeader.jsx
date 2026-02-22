@@ -10,6 +10,7 @@ function InterviewHeader() {
         width={200}
         height={100}
         className="w-[140px]"
+        loading="eager"
       />
     </div>
   );

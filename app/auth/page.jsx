@@ -4,17 +4,15 @@ import { supabase } from "@/services/supabaseClient";
 import Image from "next/image";
 import React from "react";
 
-
 function Login() {
-
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-    })
+      provider: "google",
+    });
     if (error) {
-      console.error('Error', error.message)
+      console.error("Error", error.message);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
@@ -25,6 +23,7 @@ function Login() {
           width={400}
           height={100}
           className="w-[180px]"
+          loading="eager"
         />
         <div className="flex items-center flex-col">
           <Image

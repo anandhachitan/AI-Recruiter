@@ -30,6 +30,7 @@ export function AppSidebar() {
           width={200}
           height={100}
           className="w-[150px]"
+          loading="eager"
         />
         <Button className="w-full flex items-center gap-2">
           <Plus />
