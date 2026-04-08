@@ -19,8 +19,15 @@ function StartInterview() {
   const [activeUser, setActiveUser] = useState(false);
   const [conversation, setConversation] = useState([]);
   const [timer, setTimer] = useState(0);
-  const { interviewId } = useParams();
+  const conversationRef = useRef([]);
+  const interviewInfoRef = useRef(interviewInfo);
+  const { interview_id } = useParams();
   const router = useRouter();
+
+  // Sync ref to avoid stale closures in Vapi listeners
+  useEffect(() => {
+    interviewInfoRef.current = interviewInfo;
+  }, [interviewInfo]);
 
   useEffect(() => {
     const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
@@ -64,7 +71,9 @@ function StartInterview() {
       vapiRef.current.on("message", (message) => {
         console.log("Vapi Message:", message);
         if (message?.type === "conversation-update" || message?.conversation) {
-          setConversation(message?.conversation || []);
+          const updatedConv = message?.conversation || [];
+          setConversation(updatedConv);
+          conversationRef.current = updatedConv;
         }
       });
     }
@@ -156,48 +165,58 @@ Key Guidelines:
 
   const GenrateFeedBack = async () => {
     try {
-      if (!conversation || conversation.length === 0) {
-        console.warn("No conversation to generate feedback from.");
-        router.replace(`/interview/${interviewId}/completed`);
-        return;
+      const currentConversation = conversationRef.current;
+      const currentInfo = interviewInfoRef.current;
+
+      console.log("Starting GenrateFeedBack with conversation length:", currentConversation?.length);
+
+      if (!currentConversation || currentConversation.length === 0) {
+        console.warn("No conversation data found in Ref. Checking state as fallback...");
+        if (!conversation || conversation.length === 0) {
+          console.error("Feedback aborted: Both Ref and State are empty.");
+          router.replace(`/interview/${interview_id}/completed`);
+          return;
+        }
       }
 
-      console.log("Gathering feedback for conversation:", conversation);
+      const finalConversation = currentConversation?.length > 0 ? currentConversation : conversation;
+
+      console.log("Fetching AI analysis for conversation...");
       const result = await axios.post('/api/ai-feedback', {
-        conversation: conversation
+        conversation: finalConversation
       });
 
-      console.log("Feedback result:", result?.data);
+      console.log("AI Feedback received:", result?.data);
       const content = result.data.content;
-      const finalContent = content.replace('```json', '').replace('```', '');
-      console.log("Processed feedback:", finalContent);
+      const finalContent = content.replace('```json', '').replace('```', '').trim();
 
       const feedbackData = JSON.parse(finalContent);
 
-      // Save to Supabase
+      console.log("Saving feedback to Supabase for:", currentInfo?.userName);
       const { data, error } = await supabase
-        .from('interview-feedback')
+        .from('Interview-feedback')
         .insert([
           {
-            userName: interviewInfo?.userName,
-            userEmail: interviewInfo?.userEmail,
-            interviewId: interviewId,
+            userName: currentInfo?.userName,
+            userEmail: currentInfo?.userEmail,
+            interview_id: interview_id,
             feedback: feedbackData,
             recommended: false,
           }
         ])
         .select();
 
-      if (error) throw error;
-      console.log("Supabase save success:", data);
+      if (error) {
+        console.error("Supabase Save Error:", error);
+        throw error;
+      }
 
-      // Redirect to completed page
-      router.replace(`/interview/${interviewId}/completed`);
+      console.log("Supabase save success ✅:", data);
+      router.replace(`/interview/${interview_id}/completed`);
     } catch (err) {
-      console.error("Error in GenrateFeedBack:", err);
-      toast.error("Failed to generate feedback");
-      // Still redirect so the user isn't stuck
-      router.replace(`/interview/${interviewId}/completed`);
+      console.error("Critical Error in GenrateFeedBack:", err);
+      toast.error("Feedback failed to save, but your session is complete.");
+      router.replace(`/interview/${interview_id}/completed`);
     }
   };
 

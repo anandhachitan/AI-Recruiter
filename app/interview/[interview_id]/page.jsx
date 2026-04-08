@@ -32,8 +32,10 @@ function Interview() {
         .from("Interviews")
         .select("jobPosition, jobDescription, duration, type")
         .eq("interview_id", interview_id);
-      setInterviewData(Interviews[0]);
-      if (Interviews?.length == 0) {
+
+      if (Interviews && Interviews.length > 0) {
+        setInterviewData(Interviews[0]);
+      } else {
         toast("Incorrect Interview Link");
       }
       setLoading(false);
@@ -50,9 +52,17 @@ function Interview() {
       .select("*")
       .eq("interview_id", interview_id);
 
-    console.log(Interviews[0]);
-    setInterviewInfo({ userName: userName, userEmail: userEmail, interviewData: Interviews[0] });
-    router.push("/interview/" + interview_id + "/start");
+    if (Interviews && Interviews.length > 0) {
+      console.log(Interviews[0]);
+      setInterviewInfo({
+        userName: userName,
+        userEmail: userEmail,
+        interviewData: Interviews[0]
+      });
+      router.push("/interview/" + interview_id + "/start");
+    } else {
+      toast("Error joining interview. Please check your connection.");
+    }
     setLoading(false);
   };
 
@@ -66,6 +76,7 @@ function Interview() {
           height={100}
           className="w-[140px]"
           loading="eager"
+          unoptimized
         />
         <h2 className="mt-1">AI-Powered Interview Platform</h2>
         <Image
