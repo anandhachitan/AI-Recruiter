@@ -1,16 +1,6 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import Provider from "./provider";
+
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <Provider>
-      {" "}
-      <div>
-        {" "}
-        <h1>AI-Interview-scheduler</h1> <Button>Submit</Button>{" "}
-      </div>{" "}
-    </Provider>
-  );
+  redirect("/dashboard");
 }
